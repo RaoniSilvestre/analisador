@@ -194,7 +194,38 @@ impl Expressao {
     }
 
     pub fn imprimir_arvore(&self) {
-        todo!()
+        print!("   ");
+        self.print_node("".to_string(), true);
+    }
+
+    fn print_node(&self, prefix: String, is_last: bool) {
+        let conector = if prefix.is_empty() {
+            ""
+        } else if is_last {
+            "└── "
+        } else {
+            "├── "
+        };
+
+        match self {
+            Expressao::Valor(n) => println!("{prefix}{conector}{n}"),
+            Expressao::OperadorUnario(op, _) => println!("{prefix}{conector}{op}"),
+            Expressao::OperadorBinario { op, .. } => println!("{prefix}{conector}{op}"),
+        }
+
+        let prefix = prefix + if is_last { "   " } else { "|   " };
+
+        match self {
+            Expressao::Valor(_) => {}
+            Expressao::OperadorUnario(OperadorUnario::Pinguinacao, n) => {
+                n.print_node(prefix + " ", true)
+            }
+            Expressao::OperadorUnario(_, n) => n.print_node(prefix, true),
+            Expressao::OperadorBinario { p, s, .. } => {
+                p.print_node(prefix.clone(), false);
+                s.print_node(prefix, true);
+            }
+        }
     }
 }
 

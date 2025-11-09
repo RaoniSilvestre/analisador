@@ -29,6 +29,7 @@ fn main() {
     );
 
     println!("Expressão Final Complexa: {}", expressao_final);
-
     println!("Resultado: {:?}", expressao_final.avaliar());
+
+    expressao_final.imprimir_arvore();
 }
