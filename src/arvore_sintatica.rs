@@ -1,4 +1,8 @@
-use std::{cmp::Ordering::*, fmt::Display};
+use std::{
+    cmp::Ordering::*,
+    fmt::Display,
+    ops::{Add, Div, Mul, Neg, Rem},
+};
 
 pub enum OperadorUnario {
     Negacao,
@@ -100,6 +104,57 @@ impl Display for Expressao {
     }
 }
 
+impl Add for &Box<Expressao> {
+    type Output = Option<i64>;
+    fn add(self, rhs: Self) -> Self::Output {
+        self.avaliar()
+            .zip(rhs.avaliar())
+            .map(|(a, b)| a.checked_add(b))
+            .flatten()
+    }
+}
+
+impl Mul for &Box<Expressao> {
+    type Output = Option<i64>;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        self.avaliar()
+            .zip(rhs.avaliar())
+            .map(|(a, b)| a.checked_mul(b))
+            .flatten()
+    }
+}
+
+impl Div for &Box<Expressao> {
+    type Output = Option<i64>;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        self.avaliar()
+            .zip(rhs.avaliar())
+            .map(|(a, b)| a.checked_div(b))
+            .flatten()
+    }
+}
+
+impl Rem for &Box<Expressao> {
+    type Output = Option<i64>;
+
+    fn rem(self, rhs: Self) -> Self::Output {
+        self.avaliar()
+            .zip(rhs.avaliar())
+            .map(|(a, b)| a.checked_rem(b))
+            .flatten()
+    }
+}
+
+impl Neg for &Box<Expressao> {
+    type Output = Option<i64>;
+
+    fn neg(self) -> Self::Output {
+        self.avaliar().map(|v| -v)
+    }
+}
+
 impl Expressao {
     pub fn new_num(i: i64) -> Self {
         Expressao::Valor(i)
@@ -119,31 +174,14 @@ impl Expressao {
 
     pub fn avaliar(&self) -> Option<i64> {
         match self {
-            Self::OperadorBinario {
-                p: primeiro,
-                op: operador,
-                s: segundo,
-            } => match operador {
-                OperadorBinario::Adicao => primeiro
-                    .avaliar()
-                    .zip(segundo.avaliar())
-                    .map(|(a, b)| a.checked_add(b)),
-                OperadorBinario::Multiplicacao => primeiro
-                    .avaliar()
-                    .zip(segundo.avaliar())
-                    .map(|(a, b)| a.checked_mul(b)),
-                OperadorBinario::Divisao => primeiro
-                    .avaliar()
-                    .zip(segundo.avaliar())
-                    .map(|(a, b)| a.checked_div(b)),
-                OperadorBinario::RestoDivisao => primeiro
-                    .avaliar()
-                    .zip(segundo.avaliar())
-                    .map(|(a, b)| a.checked_rem(b)),
-            }
-            .flatten(),
+            Self::OperadorBinario { p, op: operador, s } => match operador {
+                OperadorBinario::Adicao => p + s,
+                OperadorBinario::Multiplicacao => p * s,
+                OperadorBinario::Divisao => p / s,
+                OperadorBinario::RestoDivisao => p % s,
+            },
             Self::OperadorUnario(op, val) => match op {
-                OperadorUnario::Negacao => val.avaliar().map(|v| -v),
+                OperadorUnario::Negacao => -val,
                 OperadorUnario::Pinguinacao => val.avaliar(),
             },
 
